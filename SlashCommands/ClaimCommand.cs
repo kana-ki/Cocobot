@@ -48,6 +48,10 @@ namespace Cocobot.SlashCommands
                     return slashCommand.RespondAsync(embed: new EmbedBuilder().WithDescription($"Sorry, you missed this {commoditySingular}. Good luck in the next drop! ♥").Build(), ephemeral: true);
 
                 var commodity = this._objectRepo.GetById<Commodity>(guildState.RouletteState.LatestCommodityId);
+
+                if (commodity == null || commodity.Deleted)
+                    return slashCommand.RespondAsync(embed: new EmbedBuilder().WithDescription($"That {commoditySingular} no longer exists. :shrug:").Build(), ephemeral: true);
+
                 this._objectRepo.Upsert(new Model.Claim
                 {
                     Type = ClaimType.Claim,

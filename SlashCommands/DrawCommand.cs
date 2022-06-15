@@ -12,22 +12,30 @@ namespace Cocobot.SlashCommands
 
         public const string COMMAND_NAME = "draw";
         public const string OPTION_CLAIM_TIME = "claimtime";
+        public const string OPTION_RESET = "reset";
 
         public class CommandFactory : ICommandFactory
         {
 
             public SlashCommandProperties GetSlashCommand(SocketGuild guildContext = null)
             {
-                var privateOption = new SlashCommandOptionBuilder()
+                var claimWindowOption = new SlashCommandOptionBuilder()
                     .WithName(OPTION_CLAIM_TIME)
                     .WithRequired(false)
                     .WithType(ApplicationCommandOptionType.Number)
                     .WithDescription("How many minutes the drawn commodity can be claimed for.");
 
+                var resetOption = new SlashCommandOptionBuilder()
+                    .WithName(OPTION_RESET)
+                    .WithRequired(false)
+                    .WithType(ApplicationCommandOptionType.Boolean)
+                    .WithDescription("Whether to reset the next roulette draw time or not.");
+
                 return new SlashCommandBuilder()
                     .WithName(COMMAND_NAME)
                     .WithDescription("Do a new roulette draw!")
-                    .AddOption(privateOption)
+                    .AddOption(claimWindowOption)
+                    .AddOption(resetOption)
                     .WithDefaultMemberPermissions(GuildPermission.ManageEmojisAndStickers)
                     .Build();
             }
@@ -52,8 +60,9 @@ namespace Cocobot.SlashCommands
                 var guildConfig = this._objectRepo.GetById<GuildState>(guild.Id);
 
                 var claimTime = (double) (slashCommand.Data.Options.FirstOrDefault(o => o.Name == OPTION_CLAIM_TIME)?.Value ?? default(double));
+                var reset = (bool) (slashCommand.Data.Options.FirstOrDefault(o => o.Name == OPTION_RESET)?.Value ?? false);
 
-                await this._rouletteRunner.DrawAsync(guildConfig, slashCommand.Channel);
+                await this._rouletteRunner.DrawAsync(guildConfig, reset, slashCommand.Channel);
 
                 var embed = new EmbedBuilder()
                                 .WithDescription("A draw has been started! 🥳")

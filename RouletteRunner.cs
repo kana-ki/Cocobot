@@ -16,7 +16,7 @@ namespace Cocobot
         void Dispose();
         void Enable(SocketTextChannel channel);
         void Disable(SocketTextChannel channel);
-        Task DrawAsync(GuildState state, IMessageChannel channel);
+        Task DrawAsync(GuildState state, bool reset, IMessageChannel channel = null);
         void Start();
         void Stop();
     }
@@ -70,15 +70,20 @@ namespace Cocobot
                 if (state.RouletteState.NextCommodityAvailableAt.ToUniversalTime() > DateTime.UtcNow)
                     continue;
 
-                Task.Factory.StartNew(() => this.ScheduledDraw(state), TaskCreationOptions.PreferFairness);
+                Task.Factory.StartNew(() => this.DrawAsync(state, true), TaskCreationOptions.PreferFairness);
             }
         }
 
-        public async Task DrawAsync(GuildState state, IMessageChannel channel)
+        public async Task DrawAsync(GuildState state, bool reset, IMessageChannel channel = null)
         {
             var commodities = this._objectRepo.GetWhere<Commodity>(c => c.GuildId == state.Id);
             var noOfCommodities = commodities.Count();
             if (noOfCommodities == 0)
+                return;
+
+            if (channel == null)
+                channel = this._discordHander.Client.GetChannel(state.RouletteState.EnabledChannel) as IMessageChannel;
+            if (channel == null)
                 return;
 
             var commodity = SelectRandom(commodities);
@@ -86,33 +91,8 @@ namespace Cocobot
             state.RouletteState.LatestCommodityId = commodity.Id;
             state.RouletteState.LatestCommodityPostedAt = DateTime.UtcNow;
             state.RouletteState.LatestCommodityAvailableUntil = DateTime.UtcNow + state.RouletteState.ClaimWindow;
-            state.RouletteState.ClaimedBy.Clear();
-            this._objectRepo.Upsert(state);
-
-            var embeds = new[]
-            {
-                new EmbedBuilder().WithDescription($"A new {state.CommoditySingularTerm} has appeared! Quickly, claim it!").Build(),
-                await commodity.ToEmbed(this._mediaRepo)
-            };
-            _ = channel.SendMessageAsync(embeds: embeds);
-        }
-
-        private async Task ScheduledDraw(GuildState state)
-        {
-            var commodities = this._objectRepo.GetWhere<Commodity>(c => c.GuildId == state.Id);
-            var noOfCommodities = commodities.Count();
-            if (noOfCommodities == 0)
-                return;
-
-            var channel = this._discordHander.Client.GetChannel(state.RouletteState.EnabledChannel) as IMessageChannel;
-            if (channel == null)
-                return;
-
-            Commodity commodity = SelectRandom(commodities);
-            state.RouletteState.LatestCommodityId = commodity.Id;
-            state.RouletteState.LatestCommodityPostedAt = DateTime.UtcNow;
-            state.RouletteState.LatestCommodityAvailableUntil = DateTime.UtcNow + state.RouletteState.ClaimWindow;
-            state.RouletteState.NextCommodityAvailableAt = DateTime.UtcNow + state.RouletteState.Frequency;
+            if (reset)
+                state.RouletteState.NextCommodityAvailableAt = DateTime.UtcNow + state.RouletteState.Frequency;
             state.RouletteState.ClaimedBy.Clear();
             this._objectRepo.Upsert(state);
 
