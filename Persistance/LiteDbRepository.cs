@@ -7,7 +7,7 @@ using System.Linq.Expressions;
 
 namespace Cocobot.Persistance
 {
-    // This repository should remain singleton.While it will work fine none-singleton, LiteDb opens,
+    // This repository should remain singleton. While it will work fine none-singleton, LiteDb opens,
     // locks, unlocks and closes the target database file as the LiteDatabase object is instantiated
     // and disposed, all of which are very expensive. Page caching is also kept at LiteDatabase level,
     // so is lost on disposing it. Additionally, LiteDb is thread-safe. So, it's considerably more 

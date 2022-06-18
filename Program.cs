@@ -9,8 +9,7 @@ using Cocobot.Persistance;
 using System.Net.Http;
 
 var config = new ConfigurationBuilder()
-                    .AddJsonFile("config.json", optional: true)
-                    .AddUserSecrets<DiscordHandler>(optional: true)
+                    .AddEnvironmentVariables("COCOBOT_")
                     .Build();
 
 var connectionString = config.GetValue<string>("Persistence:ConnectionString");

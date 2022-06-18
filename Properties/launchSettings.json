@@ -1,7 +1,13 @@
 {
   "profiles": {
     "VenuesBot": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "environmentVariables": {
+        "COCOBOT_DiscordBotToken": "OTc4MDc2NzMzMzE4MjU4Njk5.G5YYIC.qa0C42RY_z_W8h48g-pY101S46aUAhoCzzFL7U",
+        "COCOBOT_MediaStorage__ConnectionString": "DefaultEndpointsProtocol=https;AccountName=ffxivcocobotmedia;AccountKey=OEp2yekHKIIXVLJ25uaTZWvLKFZQ9HeO/GjrkjJIlZEcmUJ0prMYSfkyPreZ1jmmmLEHD3AfDU+Q+AStG5xQCg==;EndpointSuffix=core.windows.net",
+        "COCOBOT_Persistence__ConnectionString": "Filename=database.db; Password=a95!Xh61",
+        "COCOBOT_MediaStorage__ContainerName": "commodity-images"
+      }
     },
     "WSL": {
       "commandName": "WSL2",
@@ -9,7 +15,13 @@
       "distributionName": ""
     },
     "Docker": {
-      "commandName": "Docker"
+      "commandName": "Docker",
+      "environmentVariables": {
+        "COCOBOT_DiscordBotToken": "OTc4MDc2NzMzMzE4MjU4Njk5.G5YYIC.qa0C42RY_z_W8h48g-pY101S46aUAhoCzzFL7U",
+        "COCOBOT_MediaStorage__ConnectionString": "DefaultEndpointsProtocol=https;AccountName=ffxivcocobotmedia;AccountKey=OEp2yekHKIIXVLJ25uaTZWvLKFZQ9HeO/GjrkjJIlZEcmUJ0prMYSfkyPreZ1jmmmLEHD3AfDU+Q+AStG5xQCg==;EndpointSuffix=core.windows.net",
+        "COCOBOT_Persistence__ConnectionString": "Filename=database.db; Password=a95!Xh61",
+        "COCOBOT_MediaStorage__ContainerName": "commodity-images"
+      }
     }
   }
 }
