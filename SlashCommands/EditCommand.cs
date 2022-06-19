@@ -1,8 +1,10 @@
 ﻿using Cocobot.Model;
 using Cocobot.Persistance;
+using Cocobot.Utils;
 using Discord;
 using Discord.WebSocket;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -11,9 +13,10 @@ using System.Threading.Tasks;
 namespace Cocobot.SlashCommands
 {
 
-    public static class CreateCommand
+    public static class Edit
     {
-        public const string COMMAND_NAME = "create";
+        public const string COMMAND_NAME = "edit";
+        public const string OPTION_COMMODITY = "commodity";
         public const string OPTION_NAME = "name";
         public const string OPTION_DESCRIPTION = "description";
         public const string OPTION_RARITY = "rarity";
@@ -23,12 +26,35 @@ namespace Cocobot.SlashCommands
         internal class CommandFactory : ICommandFactory
         {
 
-            public SlashCommandProperties GetSlashCommand(SocketGuild guild = null)
+            private readonly IObjectRepository _objectRepo;
+
+            public CommandFactory(IObjectRepository objectRepo) =>
+                this._objectRepo = objectRepo;
+
+            public SlashCommandProperties GetSlashCommand(SocketGuild guildContext)
             {
+                var commodities = new List<Commodity>().AsQueryable();
+                if (guildContext != null)
+                    commodities = this._objectRepo.GetAll<Commodity>()
+                        .Where(c => c.GuildId == guildContext.Id);
+
+                var commodityOption = new SlashCommandOptionBuilder()
+                    .WithName(OPTION_COMMODITY)
+                    .WithRequired(true)
+                    .WithDescription("The commodity to edit.")
+                    .WithType(ApplicationCommandOptionType.String);
+
+                foreach (var commodity in commodities)
+                {
+                    var name = commodity.Name;
+                    if (commodity.Deleted)
+                        name += " (Deleted)";
+                    commodityOption.AddChoice(name, commodity.Id.ToString());
+                }
+
                 var nameOption = new SlashCommandOptionBuilder()
                     .WithName(OPTION_NAME)
                     .WithType(ApplicationCommandOptionType.String)
-                    .WithRequired(true)
                     .WithDescription("The name of the commodity");
 
                 var descriptionOption = new SlashCommandOptionBuilder()
@@ -39,7 +65,7 @@ namespace Cocobot.SlashCommands
                 var rarityOption = new SlashCommandOptionBuilder()
                     .WithName(OPTION_RARITY)
                     .WithType(ApplicationCommandOptionType.Integer)
-                    .WithDescription("How rare of a commodity is this")
+                    .WithDescription("How rare of a commodity is this?")
                     .AddChoice("Common", 0)
                     .AddChoice("Uncommon", 1)
                     .AddChoice("Rare", 2)
@@ -48,7 +74,6 @@ namespace Cocobot.SlashCommands
 
                 var imageOption = new SlashCommandOptionBuilder()
                     .WithName(OPTION_IMAGE)
-                    .WithRequired(true)
                     .WithType(ApplicationCommandOptionType.Attachment)
                     .WithDescription("The name of the commodity");
 
@@ -59,7 +84,8 @@ namespace Cocobot.SlashCommands
 
                 return new SlashCommandBuilder()
                     .WithName(COMMAND_NAME)
-                    .WithDescription("Create a new commodity for the roulette!")
+                    .WithDescription("Edit a commodity in the roulette!")
+                    .AddOption(commodityOption)
                     .AddOption(nameOption)
                     .AddOption(descriptionOption)
                     .AddOption(rarityOption)
@@ -92,35 +118,31 @@ namespace Cocobot.SlashCommands
             public async Task HandleAsync(SocketSlashCommand slashCommand)
             {
                 var guild = ((SocketTextChannel)slashCommand.Channel).Guild;
-                var name = (string) slashCommand.Data.Options.FirstOrDefault(o => o.Name == OPTION_NAME)?.Value;
-                var description = (string) slashCommand.Data.Options.FirstOrDefault(o => o.Name == OPTION_DESCRIPTION)?.Value;
-                var rarity = (Rarity)Convert.ToInt32(slashCommand.Data.Options.FirstOrDefault(o => o.Name == OPTION_RARITY)?.Value);
-                var limited = (bool) (slashCommand.Data.Options.FirstOrDefault(o => o.Name == OPTION_LIMITED)?.Value ?? false);
-                var image = (Attachment)slashCommand.Data.Options.FirstOrDefault(o => o.Name == OPTION_IMAGE)?.Value;
+                var targetCommodityId = slashCommand.GetUlongArg(OPTION_COMMODITY);
+                var name = slashCommand.GetStringArg(OPTION_NAME);
+                var description = slashCommand.GetStringArg(OPTION_DESCRIPTION);
+                var rarity = slashCommand.GetEnumArg<Rarity>(OPTION_RARITY);
+                var limited = slashCommand.GetBoolArg(OPTION_LIMITED);
+                var image = slashCommand.GetObjectArg<Attachment>(OPTION_IMAGE);
 
-                var guildConfig = this._objectRepo.GetById<GuildState>(guild.Id);
 
-                var commodity = new Commodity()
-                {
-                    Name = name,
-                    Description = description,
-                    Rarity = rarity,
-                    Limited = limited,
-                    GuildId = guild.Id
-                };
-                commodity.ImageKey = commodity.Id.ToString();
+                var commodity = this._objectRepo.GetById<Commodity>(targetCommodityId.Value);
+                commodity.Name = name ?? commodity.Name;
+                commodity.Description = description ?? commodity.Description;
+                commodity.Rarity = rarity ?? commodity.Rarity;
+                commodity.Limited = limited ?? commodity.Limited;
                 this._objectRepo.Upsert(commodity);
                 _ = this._commandBroker.RegisterAllAsync(guild);
 
+                if (image != null)
+                    _ = this._httpClient.GetStreamAsync(image.Url)
+                        .ContinueWith(t => this._mediaRepo.Upload(commodity.ImageKey, image.ContentType, t.Result, CancellationToken.None));
 
-                _ = await this._httpClient.GetStreamAsync(image.Url)
-                    .ContinueWith(t => this._mediaRepo.Upload(commodity.ImageKey, image.ContentType, t.Result, CancellationToken.None));
-
+                var guildConfig = this._objectRepo.GetById<GuildState>(guild.Id);
                 var embeds = new Embed[] {
-                    new EmbedBuilder().WithDescription($"Wooo! New {guildConfig?.CommoditySingularTerm} added.").Build(),
-                    commodity.ToEmbed(image.Url)
+                    new EmbedBuilder().WithDescription($"Great! I've  update the {guildConfig?.CommoditySingularTerm}.").Build(),
                 };
-                await slashCommand.RespondAsync(embeds: embeds, ephemeral: limited);
+                await slashCommand.RespondAsync(embeds: embeds, ephemeral: commodity.Limited);
             }
 
         }

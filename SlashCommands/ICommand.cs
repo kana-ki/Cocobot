@@ -6,7 +6,7 @@ namespace Cocobot.SlashCommands
 {
     internal interface ICommandFactory
     {
-        SlashCommandProperties GetSlashCommand(SocketGuild guildContext = null);
+        SlashCommandProperties GetSlashCommand(SocketGuild guildContext);
     }
 
     internal interface ICommandHandler

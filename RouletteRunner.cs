@@ -98,7 +98,7 @@ namespace Cocobot
 
             var embeds = new[]
             {
-                new EmbedBuilder().WithDescription($"A new {state.CommoditySingularTerm} has appeared! Quickly, claim it!").Build(),
+                new EmbedBuilder().WithDescription($"A new {state.CommoditySingularTerm} has appeared! Quickly, `/claim` it!").Build(),
                 await commodity.ToEmbed(this._mediaRepo)
             };
             _ = channel.SendMessageAsync(embeds: embeds);

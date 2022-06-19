@@ -41,6 +41,7 @@ commandBroker.Add<ClaimTime.CommandFactory, ClaimTime.CommandHandler>(ClaimTime.
 commandBroker.Add<ShowMy.CommandFactory, ShowMy.CommandHandler>(ShowMy.COMMAND_NAME);
 commandBroker.Add<Draw.CommandFactory, Draw.CommandHandler>(Draw.COMMAND_NAME);
 commandBroker.Add<Info.CommandFactory, Info.CommandHandler>(Info.COMMAND_NAME);
+commandBroker.Add<Edit.CommandFactory, Edit.CommandHandler>(Edit.COMMAND_NAME);
 
 var componentBroker = serviceProvider.GetService<IComponentBroker>();
 componentBroker.Add<ShowMy.ComponentHandler>(ShowMy.COMPONENT_NAME);

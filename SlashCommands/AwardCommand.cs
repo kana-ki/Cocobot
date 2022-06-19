@@ -24,7 +24,7 @@ namespace Cocobot.SlashCommands
                 this._objectRepo = objectRepo;
 
 
-            public SlashCommandProperties GetSlashCommand(SocketGuild guildContext = null)
+            public SlashCommandProperties GetSlashCommand(SocketGuild guildContext)
             {
                 IQueryable<Commodity> commodities = new List<Commodity>().AsQueryable();
                 if (guildContext != null) 
