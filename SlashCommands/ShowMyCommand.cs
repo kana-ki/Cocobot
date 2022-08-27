@@ -3,14 +3,16 @@ using Cocobot.Persistance;
 using Discord;
 using Discord.WebSocket;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using moment.net;
 
 namespace Cocobot.SlashCommands
 {
-    public static class ShowMy {
+    public static class Deck {
 
-        public const string COMMAND_NAME = "showmy";
-        public const string COMPONENT_NAME = "showmy";
+        public const string COMMAND_NAME = "deck";
+        public const string COMPONENT_NAME = "deck";
 
         public class CommandFactory : ICommandFactory
         {
@@ -19,7 +21,7 @@ namespace Cocobot.SlashCommands
             {
                 return new SlashCommandBuilder()
                     .WithName(COMMAND_NAME)
-                    .WithDescription("Show a commodity from your deck!")
+                    .WithDescription("Show the commodities in your deck!")
                     .Build();
             }
 
@@ -43,15 +45,24 @@ namespace Cocobot.SlashCommands
                                             .GroupBy(c => c.CommodityId);
                 var commodities = this._objectRepo.GetById<Commodity>(deck.Select(c => c.Key));
 
-                var selectMenu = new SelectMenuBuilder().WithPlaceholder($"Which one of your {guildState.CommodityPluralTerm} would you like to show?").WithCustomId("showmy");
+                var selectMenu = new SelectMenuBuilder().WithPlaceholder($"{slashCommand.User.Username}'s {guildState.CommodityPluralTerm}").WithCustomId($"{COMPONENT_NAME}:{guild.Id}:{slashCommand.User.Id}");
                 foreach (var claim in deck)
                 {
                     var commodity = commodities.FirstOrDefault(c => c.Id == claim.Key);
                     if (commodity == null) continue;
-                    selectMenu.AddOption($"{commodity.Name} ({commodity.Rarity})", commodity.Id.ToString());
+
+                    var description = new StringBuilder();
+                    description.Append(commodity.Rarity);
+                    description.Append(". ");
+                    if (commodity.Limited)
+                        description.Append(" Limited edition. Available by award only.");
+                    description.Append(claim.Count());
+                    description.Append(" in deck.");
+
+                    selectMenu.AddOption($"{commodity.Name}", commodity.Id.ToString(), description.ToString());
                 }
                 var component = new ComponentBuilder().WithSelectMenu(selectMenu).Build();
-                await slashCommand.RespondAsync(components: component, ephemeral: true);
+                await slashCommand.RespondAsync(components: component, ephemeral: false);
             }
 
         }
@@ -69,8 +80,34 @@ namespace Cocobot.SlashCommands
 
             public async Task HandleAsync(SocketMessageComponent component)
             {
+                var guildId = ulong.Parse(component.Data.CustomId.Split(":")[1]);
+                var userId = ulong.Parse(component.Data.CustomId.Split(":")[2]);
                 var commodity = this._objectRepo.GetById<Commodity>(ulong.Parse(component.Data.Values.First()));
-                await component.RespondAsync(embed: await commodity.ToEmbed(this._mediaRepo));
+
+                var guildState = this._objectRepo.GetById<GuildState>(guildId);
+                var commoditySingular = guildState?.CommoditySingularTerm ?? "commodity";
+
+                var claims = this._objectRepo.GetWhere<Model.Claim>(c => c.GuildId == guildId && c.UserId == userId && c.CommodityId == commodity.Id);
+
+                var embed = await commodity.ToEmbed(this._mediaRepo);
+
+                var description = new StringBuilder();
+                description.AppendLine(embed.Description);
+
+                foreach (var claim in claims)
+                {
+                    description.Append(MentionUtils.MentionUser(userId));
+                    description.Append(" ");
+                    description.Append(claim.Type == ClaimType.Claim ? "claimed": "was awarded");
+                    description.Append(" this ");
+                    description.Append(commoditySingular);
+                    description.Append(" ");
+                    description.Append(claim.Claimed.FromNow());
+                    description.AppendLine(".");
+                }
+                
+
+                await component.UpdateAsync(async c => c.Embed = embed.WithDescription(description.ToString()).Build());
             }
 
         }

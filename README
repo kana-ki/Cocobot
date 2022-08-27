@@ -1,0 +1,11 @@
+﻿#Permissions Required
+
+## Scopes
+- bot
+- applications.commands
+
+## Bot permissions
+- Send Messages
+- Send Messages in Threads
+- Use Slash Commands
+- Embed links?

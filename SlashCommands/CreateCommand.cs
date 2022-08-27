@@ -118,7 +118,7 @@ namespace Cocobot.SlashCommands
 
                 var embeds = new Embed[] {
                     new EmbedBuilder().WithDescription($"Wooo! New {guildConfig?.CommoditySingularTerm} added.").Build(),
-                    commodity.ToEmbed(image.Url)
+                    commodity.ToEmbed(image.Url).Build()
                 };
                 await slashCommand.RespondAsync(embeds: embeds, ephemeral: limited);
             }

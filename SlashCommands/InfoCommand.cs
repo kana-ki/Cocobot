@@ -31,10 +31,12 @@ namespace Cocobot.SlashCommands
         {
 
             private readonly IObjectRepository _objectRepo;
+            private readonly IDiscordHandler _discordHandler;
 
-            public CommandHandler(IObjectRepository objectRepo)
+            public CommandHandler(IObjectRepository objectRepo, IDiscordHandler discordHandler)
             {
                 this._objectRepo = objectRepo;
+                this._discordHandler = discordHandler;
             }
 
             public async Task HandleAsync(SocketSlashCommand slashCommand)
@@ -45,15 +47,30 @@ namespace Cocobot.SlashCommands
 
 
                 var rouletteStateStringBuilder = new StringBuilder();
+
+                if (guildState.RouletteState.EnabledChannel != 0)
+                {
+                    var channel = this._discordHandler.Client.GetChannel(guildState.RouletteState.EnabledChannel) as IMessageChannel;
+                    rouletteStateStringBuilder.Append("**Enabled**: Enabled on #");
+                    rouletteStateStringBuilder.AppendLine(channel.Name);
+                }
+                else
+                {
+                    rouletteStateStringBuilder.AppendLine("**Enabled**: Not Enabled");
+                }
                 rouletteStateStringBuilder.Append("**Previous draw**: ");
                 rouletteStateStringBuilder.AppendLine(guildState.RouletteState.LatestCommodityPostedAt.FromNow());
+                rouletteStateStringBuilder.Append("**Number claimed**: ");
+                rouletteStateStringBuilder.AppendLine(guildState.RouletteState.ClaimedBy.Count.ToString());
                 rouletteStateStringBuilder.Append("**Claimable until**: ");
                 if (guildState.RouletteState.LatestCommodityAvailableUntil.IsAfter(System.DateTime.UtcNow))
                     rouletteStateStringBuilder.AppendLine(guildState.RouletteState.LatestCommodityAvailableUntil.ToNow());
                 else
                     rouletteStateStringBuilder.AppendLine(guildState.RouletteState.LatestCommodityAvailableUntil.FromNow());
-                rouletteStateStringBuilder.Append("**Next draw**: ");
-                rouletteStateStringBuilder.Append(guildState.RouletteState.NextCommodityAvailableAt.ToNow());
+                if (guildState.RouletteState.EnabledChannel != 0) {
+                    rouletteStateStringBuilder.Append("**Next draw**: ");
+                    rouletteStateStringBuilder.Append(guildState.RouletteState.NextCommodityAvailableAt.ToNow());
+                }
 
 
                 var rarities = commodities.GroupBy(c => c.Rarity).OrderBy(c => c.Key);
@@ -92,6 +109,8 @@ namespace Cocobot.SlashCommands
                 settingsStateStringBuilder.AppendLine(guildState.CommodityPluralTerm);
                 settingsStateStringBuilder.Append("**Roulette Frequency**: ");
                 settingsStateStringBuilder.AppendLine(guildState.RouletteState.Frequency.ToPrettyString());
+                settingsStateStringBuilder.Append("**Roulette Claim Limit**: ");
+                settingsStateStringBuilder.AppendLine(guildState.RouletteState.ClaimLimit < 1 ? guildState.RouletteState.ClaimLimit.ToString() : "None");
                 settingsStateStringBuilder.Append("**Roulette Claim Time**: ");
                 settingsStateStringBuilder.Append(guildState.RouletteState.ClaimWindow.ToPrettyString());
 
@@ -101,7 +120,7 @@ namespace Cocobot.SlashCommands
                     new EmbedBuilder().WithDescription(chancesStringBuilder.ToString()).Build(),
                     new EmbedBuilder().WithDescription(settingsStateStringBuilder.ToString()).Build(),
                 };
-                await slashCommand.RespondAsync(embeds: embeds, ephemeral: true);
+                await slashCommand.RespondAsync(embeds: embeds, ephemeral: false);
             }
 
         }

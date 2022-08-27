@@ -97,7 +97,7 @@ namespace Cocobot.SlashCommands
                 var embed = new EmbedBuilder()
                                 .WithDescription($"The **{commodity.Name}** {guildState.CommoditySingularTerm} has been revoked from {mentionable}.")
                                 .Build();
-                return slashCommand.RespondAsync(embed: embed, ephemeral: true);
+                return slashCommand.RespondAsync(embed: embed, ephemeral: false);
             }
 
         }

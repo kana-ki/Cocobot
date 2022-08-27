@@ -10,6 +10,8 @@ namespace Cocobot.Model
         public ulong EnabledChannel { get; set; }
         public TimeSpan Frequency { get; set; }
         public TimeSpan ClaimWindow { get; set; }
+        public ulong DrawRoleMention { get; set; }
+        public int ClaimLimit { get; set; }
         public ulong LatestCommodityId { get; set; }
         public DateTime LatestCommodityPostedAt { get; set; }
         public DateTime LatestCommodityAvailableUntil { get; set; }

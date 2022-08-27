@@ -44,8 +44,11 @@ namespace Cocobot.SlashCommands
                 if (guildState.RouletteState.ClaimedBy.Contains(userId))
                     return slashCommand.RespondAsync(embed: new EmbedBuilder().WithDescription($"You've already claimed this {commoditySingular}. :star_struck:").Build(), ephemeral: true);
 
+                if (guildState.RouletteState.ClaimLimit > 0 && guildState.RouletteState.ClaimedBy.Count > guildState.RouletteState.ClaimLimit)
+                    return slashCommand.RespondAsync(embed: new EmbedBuilder().WithDescription($"Sorry, you missed this {commoditySingular}; they've all been claimed! Good luck in the next drop! ♥").Build(), ephemeral: true);
+
                 if (DateTime.UtcNow > guildState.RouletteState.LatestCommodityAvailableUntil)
-                    return slashCommand.RespondAsync(embed: new EmbedBuilder().WithDescription($"Sorry, you missed this {commoditySingular}. Good luck in the next drop! ♥").Build(), ephemeral: true);
+                    return slashCommand.RespondAsync(embed: new EmbedBuilder().WithDescription($"Sorry, you missed this {commoditySingular}; time is up! Good luck in the next drop! ♥").Build(), ephemeral: true);
 
                 var commodity = this._objectRepo.GetById<Commodity>(guildState.RouletteState.LatestCommodityId);
 

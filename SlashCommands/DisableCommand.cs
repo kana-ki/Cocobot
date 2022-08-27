@@ -16,7 +16,7 @@ namespace Cocobot.SlashCommands
             {
                 return new SlashCommandBuilder()
                     .WithName(COMMAND_NAME)
-                    .WithDescription("Enabled the roulette in this channel.")
+                    .WithDescription("Disable the roulette.")
                     .WithDefaultMemberPermissions(GuildPermission.ManageEmojisAndStickers)
                     .Build();
             }
@@ -36,7 +36,7 @@ namespace Cocobot.SlashCommands
             {
                 var channel = (SocketTextChannel) slashCommand.Channel;
                 this._rouletteRunner.Disable(channel);
-                await slashCommand.RespondAsync(embed: new EmbedBuilder().WithDescription($"The roulette will now happen in this channel! ♥").Build(), ephemeral: true);
+                await slashCommand.RespondAsync(embed: new EmbedBuilder().WithDescription($"The roulette is now disabled! 😔").Build(), ephemeral: true);
             }
 
         }

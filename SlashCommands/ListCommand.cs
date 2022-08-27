@@ -59,7 +59,7 @@ namespace Cocobot.SlashCommands
                     stringBuilder.AppendLine(commodity.ToString());
 
                 var embed = new EmbedBuilder()
-                    .WithTitle(guildState.CommodityPluralTerm + " available in the roulette")
+                    .WithTitle("All " + guildState.CommodityPluralTerm + " available in the roulette")
                     .WithDescription(stringBuilder.ToString())
                     .Build();
 

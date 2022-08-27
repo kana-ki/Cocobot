@@ -27,13 +27,13 @@ namespace Cocobot
         private bool disposedValue;
         private readonly IObjectRepository _objectRepo;
         private readonly IMediaRepository _mediaRepo;
-        private readonly IDiscordHandler _discordHander;
+        private readonly IDiscordHandler _discordHandler;
 
         public RouletteRunner(IObjectRepository _repo, IDiscordHandler discordHander, IMediaRepository _mediaRepo)
         {
             this._timer = new Timer(this.OnTick, null, Timeout.Infinite, Timeout.Infinite);
             this._objectRepo = _repo;
-            this._discordHander = discordHander;
+            this._discordHandler = discordHander;
             this._mediaRepo = _mediaRepo;
         }
 
@@ -82,7 +82,7 @@ namespace Cocobot
                 return;
 
             if (channel == null)
-                channel = this._discordHander.Client.GetChannel(state.RouletteState.EnabledChannel) as IMessageChannel;
+                channel = this._discordHandler.Client.GetChannel(state.RouletteState.EnabledChannel) as IMessageChannel;
             if (channel == null)
                 return;
 
@@ -98,10 +98,11 @@ namespace Cocobot
 
             var embeds = new[]
             {
-                new EmbedBuilder().WithDescription($"A new {state.CommoditySingularTerm} has appeared! Quickly, `/claim` it!").Build(),
-                await commodity.ToEmbed(this._mediaRepo)
+                new EmbedBuilder().WithDescription($"💕 💕 💕 💕 💕 💕 💕 💕 💕\nA new {state.CommoditySingularTerm} has appeared!\n" +
+                    $"Quickly, **/claim** it!").Build(),
+                (await commodity.ToEmbed(this._mediaRepo)).Build()
             };
-            _ = channel.SendMessageAsync(embeds: embeds);
+            await channel.SendMessageAsync(state.RouletteState.DrawRoleMention > 0 ? MentionUtils.MentionRole(state.RouletteState.DrawRoleMention) : "", embeds: embeds);
         }
 
         private static Commodity SelectRandom(IEnumerable<Commodity> commodities)

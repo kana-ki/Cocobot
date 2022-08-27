@@ -94,7 +94,7 @@ namespace Cocobot.SlashCommands
 
                 var embeds = new Embed[] {
                     new EmbedBuilder().WithDescription($"Ayo! {MentionUtils.MentionUser(targetUser.Id)} was awarded the **{commodity.Name}** {guildConfig?.CommoditySingularTerm ?? "commodity"}!").Build(),
-                    await commodity.ToEmbed(this._mediaRepo)
+                    (await commodity.ToEmbed(this._mediaRepo)).Build()
                 };
                 await slashCommand.RespondAsync(embeds: embeds);
 

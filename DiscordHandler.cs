@@ -8,7 +8,7 @@ using Cocobot.Model;
 
 namespace Cocobot
 {
-    internal interface IDiscordHandler
+    public interface IDiscordHandler
     {
         Task ListenAsync();
         DiscordSocketClient Client { get; }

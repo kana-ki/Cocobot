@@ -37,13 +37,13 @@ namespace Cocobot.Model
             return stringBuilder.ToString();
         }
 
-        public async Task<Embed> ToEmbed(IMediaRepository mediaRepository)
+        public async Task<EmbedBuilder> ToEmbed(IMediaRepository mediaRepository)
         {
             var imageUri = await mediaRepository?.GetUri(this.ImageKey);
             return this.ToEmbed(imageUri.ToString());
         }
 
-        public Embed ToEmbed(string imageUri)
+        public EmbedBuilder ToEmbed(string imageUri)
         {
             var stringBuilder = new StringBuilder();
 
@@ -78,8 +78,7 @@ namespace Cocobot.Model
                 .WithColor(color)
                 .WithTitle(this.Name)
                 .WithDescription(stringBuilder.ToString())
-                .WithImageUrl(imageUri)
-                .Build();
+                .WithImageUrl(imageUri);
         }
     }
 }

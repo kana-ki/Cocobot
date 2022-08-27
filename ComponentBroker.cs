@@ -27,7 +27,7 @@ namespace Cocobot
         }
 
         public Task HandleAsync(SocketMessageComponent component) =>
-            this._handlers.Activate(component.Data.CustomId).HandleAsync(component);
+            this._handlers.Activate(component.Data.CustomId.Split(":")[0]).HandleAsync(component);
 
     }
 }

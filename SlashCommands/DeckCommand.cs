@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace Cocobot.SlashCommands
 {
-    public static class Deck {
+    public static class DeckList {
 
-        public const string COMMAND_NAME = "deck";
+        public const string COMMAND_NAME = "decklist";
         public const string OPTION_PRIVATE = "private";
 
         public class CommandFactory : ICommandFactory
