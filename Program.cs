@@ -10,7 +10,7 @@ using System.Net.Http;
 
 var config = new ConfigurationBuilder()
                     .AddEnvironmentVariables("COCOBOT_")
-                    .AddUserSecrets<Program>()
+                    .AddUserSecrets<Program>(optional: true)
                     .Build();
 
 var connectionString = config.GetValue<string>("Persistence:ConnectionString");
