@@ -110,7 +110,7 @@ namespace Cocobot.SlashCommands
                 settingsStateStringBuilder.Append("**Roulette Frequency**: ");
                 settingsStateStringBuilder.AppendLine(guildState.RouletteState.Frequency.ToPrettyString());
                 settingsStateStringBuilder.Append("**Roulette Claim Limit**: ");
-                settingsStateStringBuilder.AppendLine(guildState.RouletteState.ClaimLimit < 1 ? guildState.RouletteState.ClaimLimit.ToString() : "None");
+                settingsStateStringBuilder.AppendLine(guildState.RouletteState.ClaimLimit >= 1 ? guildState.RouletteState.ClaimLimit.ToString() : "None");
                 settingsStateStringBuilder.Append("**Roulette Claim Time**: ");
                 settingsStateStringBuilder.Append(guildState.RouletteState.ClaimWindow.ToPrettyString());
 
